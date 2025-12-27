@@ -48,9 +48,10 @@ collectUniqueCats opts target fetchOne
                 pure (reverse uniques)
             else do
                 let leftToCollect = target - uniqueCount
-                let desiredInFlight = if scalwWorkers opts 
-			then min (concurrency opts) leftToCollect
-			else concurrency opts
+                let desiredInFlight =
+                        if scaleWorkers opts
+                            then concurrency opts
+                            else min (concurrency opts) leftToCollect
                 let missing = desiredInFlight - length inFlight
                 (nextId', inFlight') <- spawnMany logFn missing nextId inFlight
 
