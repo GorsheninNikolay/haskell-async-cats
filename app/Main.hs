@@ -45,12 +45,18 @@ main = do
 
     mgr <- newCatManager
     let svc = mkCatService "http://algisothal.ru:8889"
-    sem <- maxCollageWorkers
+    sem <- Msem.new maxCollageWorkers
     let loop collageId = do
-        putStrLn $ "Starting collage generation #" ++ show collageId
-        _ <- async $ with sem $ do
-            processCollage collageId mgr svc baseDir
+        MSem.with sem $ do
+            put StrLn $ "Starting worker #" ++ show collageId
+            a <- async $ do
+                _ <- processCollage collageId mgr svc baseDir
+                putStrLn $ "Worker #" ++ show collageId ++ "finished."
+            wait a
+        loop (collageId + 1)
+    loop 1
 
+	
 
 resetDir :: FilePath -> IO ()
 resetDir dir = do
