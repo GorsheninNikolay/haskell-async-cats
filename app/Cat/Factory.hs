@@ -17,10 +17,11 @@ import Cat.Types (CatHash, CatImage (catHash))
 data CollectOptions = CollectOptions
     { concurrency :: Int
     , logMsg :: String -> IO ()
+    , scaleWorkers :: Bool
     }
 
 defaultCollectOptions :: CollectOptions
-defaultCollectOptions = CollectOptions{concurrency = 12, logMsg = putStrLn}
+defaultCollectOptions = CollectOptions{concurrency = 12, logMsg = putStrLn, scaleWorkers = True}
 
 collectUniqueCats :: CollectOptions -> Int -> IO CatImage -> IO [CatImage]
 collectUniqueCats opts target fetchOne
@@ -47,7 +48,9 @@ collectUniqueCats opts target fetchOne
                 pure (reverse uniques)
             else do
                 let leftToCollect = target - uniqueCount
-                let desiredInFlight = min (concurrency opts) leftToCollect
+                let desiredInFlight = if scalwWorkers opts 
+			then min (concurrency opts) leftToCollect
+			else concurrency opts
                 let missing = desiredInFlight - length inFlight
                 (nextId', inFlight') <- spawnMany logFn missing nextId inFlight
 
